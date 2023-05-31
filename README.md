@@ -5,7 +5,8 @@ Ce repo vise à aider les élèves des prochaines années en cas de difficultés
 
 ## Contenu
 
-* Rapport final et intermédiaire au format pdf et tex
+* Sujet original
+* Rapport final et intermédiaire au format pdf et tex dans le dossier rendus
 * Fichier README
 * Fichiers sources du projet dans le dossier src
 * Fichiers de test dans le dossier ressources
