@@ -1,0 +1,238 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{float}
+\usepackage{hyperref} 
+
+
+\title{Rapport final - Projet GC}
+\date{25 Mai 2023}
+\author{Mathis Verstrepen \and Remi Clement}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Contexte du projet et description du sujet}
+
+Le but de ce sujet est de créer une application pour résoudre des problèmes d’ordonnancement.
+Elle devra calculer les dates de début au plus tôt et au plus tard pour chaque tâche ainsi que calculer leur marge.
+Enfin elle devra identifier la durée minimale du projet et les tâches critiques.
+
+L'application doit être capable de lire un fichier d’entrée avec un format spécifique (inspiré de DIMACS) contenant les informations sur les sommets, les arêtes, les poids et les contraintes de précédence.
+Il doit être également capable de traiter de grands ensembles de données en étant efficace en usage de la mémoire et CPU.
+
+\section{Analyse et conception du problème}
+
+L'objectif de ce projet est de créer un programme pour résoudre des problèmes d'ordonnancement de tâches simples en tenant compte des contraintes de précédence et de la durée des tâches individuelles. 
+
+\subsection{Modélisation du problème}
+
+Le graphe sera représenté à l'aide de trois tables :
+
+\begin{itemize}
+\item $Head$ : La table Head contiendra les informations de chaque sommets. Elle sera représenté à l'aide d'une liste de structure dont voici la forme :
+\begin{verbatim}
+struct sommet {
+    entier succIdx
+    entier predIdx
+    entier poids
+    entier dateTot
+    entier dateTard
+    entier marge
+    booléen estCritique
+}
+\end{verbatim}
+NB : Nous avions oublié le champ marge lors du premier rapport.
+
+\item $Succ$ : Le tableau $Succ$ est une liste rangée contenant successivement pour chaque
+sommet $x_i$ l’ensemble de ses sommets successeurs.
+
+\item $Pred$ : Le tableau $Pred$ est une liste rangée contenant successivement pour chaque
+sommet $x_i$ l’ensemble de ses sommets predecesseurs.
+\end{itemize}
+
+\subsection{Méthode de résolution}
+
+Pour résoudre ce problème d'ordonnancement, nous devons déterminer, les dates de début au plus tôt et au plus tard pour chaque tâche, ainsi que la durée minimale du projet ,les tâches critiques et la marge de chacune des tâches. Nous utiliserons la méthode de Potentiel-Tâche pour calculer ces informations en utilisant l'algorithme de Bellman sur le graphe.
+
+Cette méthode se déroule en plusieurs étapes :
+
+\subsubsection{Calcul l'ordre topologique}
+
+On utilisera une variante de l'algorithme d'exploration en profondeur pour calculer la liste $Sorted$ correspondant à l'ordre topologique des sommets du graphe.
+
+\subsubsection{Calcul des potentiels maximaux}
+
+On applique l'algorithme de Bellman à partir du sommet de départ pour déterminer les potentiels maximaux de chaque sommet. Les potentiels maximaux correspondent aux dates de début au plus tôt pour chaque sommet.
+
+\subsubsection{Calcul des potentiels minimaux et identification des tâches critiques et des marges}
+
+On construit l'antiarborescence et on utilise l'algorithme de Bellman à partir du sommet de fin pour déterminer les potentiels minimaux de chaque sommet. Les potentiels minimaux correspondent aux dates de fin au plus tard pour chaque sommet.
+
+Pendant cet algorithme on calculera et identifira également les tâches critiques et les marges de chaque sommet.
+
+\subsubsection{Détermination de la durée minimale du projet}
+
+La durée minimale du projet est déterminée en trouvant la date de fin au plus tard du sommet de fin du graphe.
+
+\section{Mode d’emploi}
+
+\subsection{Commandes de compilation}
+
+\subsubsection{Compilation classique}
+
+Série de commandes pour un lancement classique du programme :
+
+\begin{lstlisting}[language=bash]
+ $ gcc -c *.c
+ $ gcc *.o
+\end{lstlisting}
+
+\subsubsection{Compilation orienté débogage}
+
+Série de commandes optimisés pour le débogage du programme et les test de valgrind :
+
+\begin{lstlisting}[language=bash]
+ $ gcc -c -g -Wall -pass-exit-codes *.c
+ $ gcc -g -Wall -pass-exit-codes *.o
+\end{lstlisting}
+
+\subsection{Commandes de lancement}
+
+\subsubsection{Lancement orienté performance}
+
+Ce lancement optimise le temps d'éxecution du programme et n'affiche que la valeur optimale du graphe.
+
+\begin{lstlisting}[language=bash]
+ $ ./a.out "../ressources/nom_du_fichier.txt"  
+\end{lstlisting}
+
+\subsubsection{Lancement orienté débogage et informations}
+
+Ce lancement affiche toutes les données du graphe (Table Head, Succ, Pred, date au plus tôt, au plus tard, tâches critiques et marge si non critique) (ajout du paramètre d dans la commande).
+
+\begin{lstlisting}[language=bash]
+ $ ./a.out "../ressources/nom_du_fichier.txt" d
+\end{lstlisting}
+
+\subsubsection{Lancement Valgrind}
+
+Commande utilisé pour tester les fuites de mémoires et les accès mémoire non correct avec Valgrind (la compilation orienté débogage est recommandée) :
+\begin{lstlisting}[language=bash]
+ $ valgrind --trace-children=yes --track-fds=yes --track-origins=yes 
+   --leak-check=full --show-leak-kinds=all ./a.out 
+   "../ressources/nom_du_fichier.txt"
+\end{lstlisting}
+
+\subsection{Fichiers d'entrées sorties}
+
+Nous utilisons les 5 fichiers de test fournis pour le projet qui sont nommés :
+\begin{itemize}
+\item $"Ex\_300000.txt"$ : graphe de 300 000 points
+\item $"Ex\_TD.txt"$ : graphe de l'exemple de TD
+\item $"ordo30.txt"$ : graphe de 30 points
+\item $"ordo120.txt"$ : graphe de 120 points
+\item $"Sondage.txt"$ : graphe de l'exemple du sujet
+\end{itemize}
+
+Les noms de fichiers sont mis en arguments de la commande de lancement et non en fichier d'entrées (cf. Commandes de lancement).
+
+Une sortie dans un fichier en sortie est possible avec un ajout en fin de commande d'une redirection de la sortie ( $> out.txt$ )
+
+\section{Résultats et performance}
+
+\subsection{Résultats}
+
+Voici les valeurs optimales trouvées pour chaque fichier de test :
+
+\begin{itemize}
+\item $"Ex\_300000.txt"$ : 1 350 000
+\item $"Ex\_TD.txt"$ : 43
+\item $"ordo30.txt"$ : 54
+\item $"ordo120.txt"$ : 95
+\item $"Sondage.txt"$ : 43
+\end{itemize}
+
+Elles correspondent toutes aux valeurs optimales attendu.
+
+Les valeurs des dates au plus tot, au plus tard, des tâches critiques, des marges ont été comparées aux valeurs connues des fichiers $Sondage.txt$ et $Ex\_TD.txt$ et correspondent aux valeurs attendu.
+
+\subsection{Performance}
+
+\subsubsection{Performance temps CPU}
+
+\begin{itemize}
+\item Les fichiers $"Ex\_TD.txt"$, $"ordo30.txt"$, $"ordo120.txt"$, $"Sondage.txt"$ s'éxecute tous en dessous de la barre des 1 milliseconde.
+
+\item Le fichier $"Ex\_300000.txt"$ est traité en environ 125 millisecondes.
+\end{itemize}
+
+\begin{center} 
+\includegraphics[width=1\columnwidth]{perf_300k.png}
+\captionof{figure}{Détails indicateurs de performances et de leurs variations sur 100 éxecutions du programme sur le fichier de test du graphe de 300 000 sommets.}
+\end{center} 
+
+NB : les temps d'éxecution totaux du programme ont été testé à l'aide de la commande $perf stat$ de linux (\href{https://man7.org/linux/man-pages/man1/perf-stat.1.html}{man7.org/linux/man-pages/man1/perf-stat.1.html}). Les tests ont été effectué sur un processeur AMD Ryzen 7 5800x cadencé à 4.6 GHz.
+
+\subsubsection{Utilisation mémoire}
+
+La majorité de nos structures et de nos listes étant allouées avec malloc ou calloc, il est assez représentatif de regarder le nombre de bytes allouées que nous indique Valgrind pour avoir une idée de l'ordre de grandeur de la quantité de mémoire utilisée.
+
+Mémoire allouée par fichier :
+\begin{itemize}
+\item $"Ex\_300000.txt"$ : 22 565 780 bytes
+\item $"Ex\_TD.txt"$ : 6 644 bytes
+\item $"ordo30.txt"$ : 8 236 bytes
+\item $"ordo120.txt"$ : 15 212 bytes
+\item $"Sondage.txt"$ : 6 468 bytes
+\end{itemize}
+
+En sachant que le fichier des données du graphe de 300 000 sommets pèse 9 657 809 bytes, il semble que nous soyons assez efficace en terme d'utilisation mémoire.
+
+\section{Conclusion}
+
+\subsection{Etat du projet}
+
+Le projet est entièrement terminé et chaque consignes du cahier des charges a été respecté.
+
+\subsection{Améliorations possibles}
+
+\subsubsection{Optimisation mémoire}
+
+Une des pistes d'amélioration pourrait être l'utilisation de la mémoire par le programme. Même si l'on reste bien moins couteux que la majorité des autres structures de données choisies pour ce projet comme par exemple l'utilisation de listes chainées au lieu d'une simple liste d'entier, nous utilisons des champs qui peuvent sembler inutiles sur une utilisation en production. En effet les champs $marge$ et $estCritique$ de la table $Head$ ne semblent pas essentiel puisqu'il peuvent être déduit très facilement et très rapidement à l'aide du champ $dateTot$ et $dateTard$. Cela nous ferait économiser une quantité de mémoire proportionnelle au nombre sommets du graphe.
+
+\subsubsection{Multithreading}
+
+Lors de l'éxecution du programme on remarque vite que le programme ne s'éxecute que sur un seul coeur CPU et ne prend pas avantage des autres coeurs disponible du processeur. Une des pistes d'améliorations serait d'implémenter une version du programme utilisant le multithreading afin de répartir la charge CPU sur plusieurs coeurs. Cela pourrait être fait par exemple en utilisant la librairie $pthread.h$ qui permet d'implementer le multithreading en C. Cependant pour prendre avantage au maximum de cette fonctionnalité, il serait peut être nécessaire de changer l'architecture globale des algorithmes.
+
+\section{Bilan Personnel}
+
+\subsection{Mathis Verstrepen}
+
+Ce projet m'a permis d'appliquer tout ce que l'on avait appris en théorie pendant les cours et de l'appliquer à un exemple réel.
+Pendant ce projet nous avons fait face à de nombreux obstacles notamment lors de l'implémentation de l'algorithme de chargement des données dont je me suis chargés et que j'ai du recommencer de zéro au milieu du projet par manque d'efficacité. Une fois le chargement des données mis en place nous avons pu tester et corriger les fonctions de résolution de graphe codé par Remi. Puis nous avons essayé d'optimiser au maximum ce qui pouvait l'être dans le programme.
+
+Ce projet m'a permis de découvrir de nouvelles choses en C comme l'utilisation de $calloc$. 
+
+Au final le projet est un succès, il marche sans erreur et est très bien optimisé que ce soit en utilisation mémoire ou CPU. 
+
+\subsection{Remi Clement}
+
+ 	Au début du projet, le travail demandé ne me semblait pas évident puisque l'on n’avait pas encore implanté de graphe sur ordinateur. De plus, contrairement à une résolution sur papier, ici, dès qu'il y a un grand nombre de points, il est impossible de tracer le graphe pour voir à quoi il ressemble. Il n'y a pas de fonction d'affichage et cela rend plus difficile l'implantation des fonctions pour sa manipulation.
+ 	
+ 	Une fois les structures fixées, il m’a été bien plus simple de visualiser la façon dont nous allions résoudre le problème. La principale difficulté pour moi était l’utilisation des indices des sommets dans le tableau Head pour les représenter, puisque nous avions décidé de ne pas leur attribuer d’identifiant et il a été difficile pour moi de passer du pseudo code à l’écriture des fonctions à l’aide du langage C à cause de ce moyen de procéder. Mais au final j’ai pu écrire le corps des fonctions principales et avec l’aide de Mathis nous avons corrigé les erreurs d’indices et de manipulation de tableau que j’ai pu faire.
+ 	
+	Au final, ce projet qui me paraissait assez difficile s’est plutôt bien déroulé et le résultat obtenu est vraiment satisfaisant. Le programme marche correctement et avec un temps d’exécution vraiment court sur le graphe de 300 000 poins.
+
+\end{document}

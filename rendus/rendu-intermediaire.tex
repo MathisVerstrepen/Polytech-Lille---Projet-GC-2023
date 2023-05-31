@@ -1,0 +1,383 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{float}
+
+\title{Rapport intermédiaire - Projet GC}
+\date{5 Mai 2023}
+\author{Mathis Verstrepen \and Remi Clement}
+
+\begin{document}
+\maketitle
+\section{Précisions du cahier des charges}
+
+\subsection{Objectifs du projet}
+
+\begin{itemize}
+\item Créer une application pour résoudre des problèmes d'ordonnancement.
+\item Calculer les dates de début au plus tôt et au plus tard pour chaque tâche.
+\item Calculer la marge de chacune des tâches.
+\item Identifier la durée minimale du projet et les tâches critiques.
+\end{itemize}
+
+\subsection{Exigences fonctionnelles}
+
+\begin{itemize}
+\item Le programme doit être capable de lire un fichier d'entrée avec un format spécifique (inspiré de DIMACS) contenant les informations sur les sommets, les arêtes, les poids et les contraintes de précédence.
+\item Le programme doit être capable de calculer les informations suivantes pour chaque tâche : date de début au plus tôt, date de début au plus tard, marge et si la tâche est critique.
+\item Le programme doit être capable de traiter de grands ensembles de données (jusqu'à plus de 300 000 sommets).
+\end{itemize}
+
+\subsection{Exigences non fonctionnelles}
+
+\begin{itemize}
+\item Performance: Le programme doit être efficace en termes de coût mémoire et de coût CPU pour traiter de grands ensembles de données.
+\item Lisibilité: Le code doit être bien structuré, commenté et facile à comprendre.
+\end{itemize}
+
+\section{Analyse et conception du problème}
+
+L'objectif de ce projet est de créer un programme pour résoudre des problèmes d'ordonnancement de tâches simples en tenant compte des contraintes de précédence et de la durée des tâches individuelles. 
+
+\subsection{Modélisation du problème}
+
+Le problème d'ordonnancement peut être modélisé à l'aide d'un graphe de potentiel tâche, où les sommets représentent les tâches à réaliser et les arêtes représentent les contraintes de précédence entre les tâches. Les poids des arêtes correspondent à la durée des tâches. Le graphe peut être représenté en mémoire à l'aide de diverses structures de données, telles que des listes d'adjacence, des matrices d'incidence ou des matrices d'adjacence. Les différentes structures de données seront comparées et choisies dans la section 4.
+
+\subsection{Méthode de résolution}
+
+Pour résoudre ce problème d'ordonnancement, nous devons déterminer, comme indiqué dans le cahier des charges, les dates de début au plus tôt et au plus tard pour chaque tâche, ainsi que la durée minimale du projet ,les tâches critiques et la marge de chacune des tâches. Nous utiliserons la méthode de Potentiel-Tâche pour calculer ces informations en utilisant l'algorithme de Bellman sur le graphe.
+
+Cette méthode se déroule en plusieurs étapes :
+
+\subsubsection{Calcul des potentiels maximaux}
+
+On applique l'algorithme de Bellman à partir du sommet de départ pour déterminer les potentiels maximaux de chaque sommet. Les potentiels maximaux correspondent aux dates de début au plus tôt pour chaque sommet.
+
+\subsubsection{Calcul des potentiels minimaux}
+
+On construit l'antiarborescence et on utilise l'algorithme de Bellman à partir du sommet de fin pour déterminer les potentiels minimaux de chaque sommet. Les potentiels minimaux correspondent aux dates de fin au plus tard pour chaque sommet.
+
+\subsubsection{Identification des tâches critiques et des marges}
+
+On calcule la marge de chaque tâche en calculant la différence entre le potentiel maximal et minimal. Les tâches critiques sont celles dont le potentiel maximal est égal au potentiel minimal, c'est à dire où la marge est nulle. Ces tâches sont critiques car elles ne peuvent pas être retardées sans affecter la durée totale du projet.
+
+\subsubsection{Calcul de la durée minimale du projet}
+
+La durée minimale du projet est déterminée en trouvant la date de fin au plus tard du sommet de fin du graphe.
+
+\section{Modélisation et résolution de l'exemple du sondage}
+
+On recherche d'abord les niveaux pour chaque sommets du graphe. Appliqué à l'exemple du sondage on trouve les niveaux suivants :
+\begin{itemize}
+\item $N_{0}$ = {Debut}
+
+\item $N_{1}$ = {T1}
+
+\item $N_{2}$ = {T2, T3}
+
+\item $N_{3}$ = {T4, T5}
+
+\item $N_{4}$ = {T6, T7}
+
+\item $N_{5}$ = {T8}
+
+\item $N_{6}$ = {T9}
+
+\item $N_{7}$ = {Fin}
+\end{itemize}
+
+On calcule ensuite les valeurs $\pi(x)$, en utilisant l'algorithme de Bellman à partir du sommet de début. Ici, on cherche le potentiel maximum de chaque tâche.
+
+Enfin, on calcule les valeurs $\eta(x)$ en appliquant l'algorithme de Bellman sur l'antiarborescence issue du sommet de fin. Ici on cherche le potentiel minimum de chaque tâche par rapport à la durée minimale trouvée $\pi(F)$.
+
+\begin{center} 
+\includegraphics[width=1\columnwidth]{graph_sujet.png}
+\captionof{figure}{Modélisation de l'exemple du sondage, en rouge les tâches critiques, la première valeur représente la date au plus tard, la seconde la date au plus tôt.}
+\end{center} 
+
+On trouve bien la valeur optimale 43.
+
+Les sommets en rouge sont les tâches critiques.
+
+\section{Choix et justification des structures de données utilisées}
+
+\subsection{Comparaison}
+
+\begin{tabular}{ |p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|  }
+ \hline
+ \multicolumn{5}{|c|}{Comparaison des structures} \\
+ \hline
+ Structure& Coût mémoire& Coût accès sommet& Coût recherche prédécesseurs& Coût recherche succésseurs\\
+ \hline
+ Matrice adjacence& $O(n^2)$& O(1)& O(n)& O(n)\\\hline
+ Table de successeurs& $O(n+m)$& O(n)& O(m)& O(d)\\\hline
+ Table de listes chainées& $O(n+m)$& O(n)& O(m)& O(d)\\\hline
+ Notre proposition& $O(n+2m+2n)$& O(n)& O(d)& O(d)\\\hline
+
+ \hline
+\end{tabular}
+
+\paragraph{}
+
+Où n est le nombre de sommets, m le nombre de d'arêtes et d le degré du sommet.
+
+La matrice d'adjacence a un coût mémoire trop élévé pour supporter les problèmes de grande taille.
+
+Ici le graphe ne sera pas amené à être souvent modifié, il n'est donc pas utile d'implémenter la structure les listes chainées.
+
+La tables de successeurs est une bonne solution mais necessite une optimisation quand au coup d'accès des prédécesseurs.
+
+Notre proposition est d'adapter le principe de la table de successeurs composé de la liste Head et la liste $Succ$ en y ajoutant une liste $Pred$ qui est une liste rangée contenant successivement pour chaque sommet $x_{i}$ l'ensemble de ses sommets prédécesseurs.
+
+\subsection{Schéma applicatif}
+
+NB : les indices de ce schéma commence à 1.
+
+\subsubsection{Tableau Head}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+Deb & T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & Fin \\
+\hline \hline
+1 & 2 & 5 & 6 & 8 & 10 & 11 & 13 & 14 & 15 & \ \\
+\hline
+1 & 2 & 3 & 4 & 5 & 7 & 8 & 10 & 11 & 13 & 15 \\
+\hline
+0 & 5 & 5 & 10 & 8 & 15 & 5 & 20 & 5 & 10 & 0 \\
+\hline
+\end{tabular}
+
+Le tableau $Head$ est une liste composée de structure $Sommet$. Ces structures seront composées de plusieurs champs : 
+\begin{itemize}
+\item SuccIdx : Indice du tableau $Succ$ à partir duquel sont rangés les successeurs du sommet.
+\item PredIdx : Indice du tableau $Pred$ à partir duquel sont rangés les predecesseurs du sommet.
+\item Poids : Poids du sommet et donc des arêtes sortantes du sommet.
+\end{itemize}
+
+Nous ajouterons également les champs dateTard, dateTot, estCritique pour stocker les résultats des algorithmes.
+
+Chaque sommets sera donc représenté comme :
+
+\begin{verbatim}
+struct sommet {
+    entier succIdx
+    entier predIdx
+    entier poids
+    entier dateTot
+    entier dateTard
+    booléen estCritique
+}
+\end{verbatim}
+
+\subsubsection{Tableau Succ}
+\begin{tabular}{|c||c|c|c||c||c|c||c|c||c||c|c||c||c||c|}
+\hline
+2 & 3 & 4 & 5 & 6 & 5 & 7 & 7 & 8 & 9 & 9 & 10 & 11 & 10 & 11\\
+\hline
+\end{tabular}
+\hfill \break
+
+Le tableau $Succ$ est une liste rangée contenant successivement pour chaque sommet $x_{i}$ l'ensemble de ses sommets successeurs.
+
+\subsubsection{Tableau Pred}
+\begin{tabular}{|c||c||c||c||c|c||c||c|c||c||c|c||c|c||c|c|}
+\hline
+1 & 1 & 2 & 2 & 2 & 4 & 3 & 4 & 5 & 5 & 6 & 7 & 7 & 9 & 8 & 10\\
+\hline 
+\end{tabular}
+\hfill \break
+
+Le tableau $Pred$ est une liste rangée contenant successivement pour chaque sommet $x_{i}$ l'ensemble de ses sommets predecesseurs.
+On fixe le predecesseur du sommet de départ à lui même pour le bon déroulement de l'algo de Bellman.
+
+\section{Algorithmes de résolution appliqués}
+
+\begin{algorithm}[H]
+\caption{Algorithme d'exploration en profondeur pour calculer l'ordre topologique}
+\begin{algorithmic}[1]
+\REQUIRE $Head, Succ, n$ (nombre de sommets), $r$ (sommet de départ)
+\STATE Initialiser un tableau $Mark$ de taille $n$ avec des valeurs FALSE
+\STATE $Mark[r] \gets$ TRUE
+\STATE Initialiser une pile vide $Z$
+\STATE {Push}{$Z, r$}
+\STATE Initialiser un tableau $Next$ de taille $n$ avec les valeurs de $Head$
+\STATE Initialiser un tableau vide $Sorted$ de taille $n$
+\STATE $idxSorted \gets n$
+
+\REPEAT
+    \STATE $x \gets$ Front($Z$)
+    \IF{$Next[x] > Head[x+1]$}
+        \STATE Pop($Z, x$)
+        \STATE $Sorted[idxSorted] \gets x$
+        \STATE $idxSorted \gets idxSorted - 1$
+    \ELSE
+        \STATE $y \gets Succ[Next[x]]$
+        \STATE $Next[x] \gets Next[x] + 1$
+        \IF{NOT $Mark[y]$}
+            \STATE $Mark[y] \gets$ TRUE
+            \STATE Push({$Z, y$})
+        \ENDIF
+    \ENDIF
+\UNTIL{SetIsEmpty($Z$)}
+\RETURN $Sorted$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Algorithme de Bellman avec sommets triés dans l'ordre topologique}
+\begin{algorithmic}[1]
+\REQUIRE $Head, Pred, n$ (nombre de sommets), $Sorted$ (liste des sommets triés par ordre topologique)
+\STATE Initialiser $Head[sommet\_de\_depart].dateTard = 0$ et autres sommets avec des valeurs infinies
+\FOR{$k = 2$ jusqu'à $n$}
+	\STATE $y \gets Sorted[k]$
+	\FOR{$i = Head[y].PredIdx$ jusqu'à $Head[y+1].PredIdx - 1$}
+		\STATE $x \gets Pred[i]$
+		\STATE $temp \gets Head[x].dateTard + Head[x].Poids$
+		\IF{$temp < Head[y].dateTard$}
+			\STATE $Head[y].dateTard \gets temp$
+		\ENDIF
+	\ENDFOR
+\ENDFOR
+\RETURN $Head$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Algorithme de Bellman inversé avec sommets triés dans l'ordre topologique inversé}
+\begin{algorithmic}[1]
+\REQUIRE $Head, Succ, n$ (nombre de sommets), $InvSorted$ (liste des sommets triés par ordre topologique inversé)
+\STATE Initialiser $Head[sommet_de_fin].dateTard = Head[sommet\_de\_fin].dateTot$ et autres sommets avec des valeurs infinies
+\FOR{$k = 2$ jusqu'à $n$}
+	\STATE $x \gets InvSorted[k]$
+	\FOR{$i = Head[x].SuccIdx$ jusqu'à $Head[x+1].SuccIdx - 1$}
+		\STATE $y \gets Succ[i]$
+		\STATE $temp \gets Head[y].dateTard - Head[x].Poids$
+		\IF{$temp < Head[x].dateTard$}
+			\STATE $Head[x].dateTard \gets temp$
+		\ENDIF
+	\ENDFOR
+\ENDFOR
+\RETURN $Head$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Procédure globale d’enchaînement}
+
+\subsection{Initialisation du graphe}
+
+\begin{lstlisting}
+Fonction initGraphe(p, Head, Pred, Succ)
+
+	Determination des niveaux du graphe
+	Creation du tableau contenant les niveaux du graphes
+
+	Donnees:
+		- Head, tableau contenant les informations sur les sommets
+		- Pred, tableau contenant les predecesseurs des sommets
+
+	Resultat: 
+		- N, tableau contenant les niveaux du graphes
+
+\end{lstlisting}
+
+\subsection{Calcul des niveaux}
+
+\begin{lstlisting}
+Fonction niveau(p, Head, Pred, N)
+
+	Tri des niveaux
+	Tri les niveaux par ordre alphanumerique
+
+	Donnees:
+		entier p, nombre de sommets
+		N, tableau contenant les niveaux du graphes
+
+	Resultat: 
+		Ntri, liste de taille p contenant les sommets tries par 
+		niveau et ordre alphanumerique
+
+tri(p, N, Ntri)
+
+\end{lstlisting}
+
+\subsection{Calcul des dates au plus tard}
+
+\begin{lstlisting}
+Fonction Bellman(p, Head, N, Pred)
+
+	Calcul des dates au plus tard
+	Calcul le potentiel de chaque sommets, correspondant a la 
+	date au plus tard. Modification de l'information dans la 
+	structure de chaque sommets
+	On utilise ici l'algorithme de Bellman
+	
+	Donnees:
+		entier p, sombre de sommets
+		Ntri, liste de taille p contenant les sommets tries 
+			par niveau et ordre alphanumerique
+		Pred, tableau conteant les predecesseurs des sommets
+
+	Donnees/Resultat:
+		Head, tableau contenant les sommets du graphe
+
+Bellman(p, Head, N, Pred)
+
+\end{lstlisting}
+
+\subsection{Calcul des dates au plus tot}
+
+\begin{lstlisting}
+Fonction BellmanInv(p, Head, Pred, N)
+
+	Calcul des dates au plus tot
+	Memes informations que precedemment. 
+	Ici le potentiel calcule correspond a la date au plus tot
+
+BellmanInv(p, Head, Pred, N)
+\end{lstlisting}
+
+\subsection{Mise à jour des infos sur les tâches critiques et les marges}
+
+\begin{lstlisting}
+Fonction critmarge(p, Head)
+
+	Mise a jour des infos sur les taches critiques et les marges
+	Determine la marge d'une tache et met a jour le booleen "critique" 
+	contenu dans la structure si besoin
+
+	Donnees:
+		entier p, nombre de sommets
+		
+	Donnees/Resultat:
+		Head, tableau contenant les sommets du graphe
+
+critmarge(p, Head)
+
+\end{lstlisting}
+
+\subsection{Affichage des résultats}
+
+\begin{algorithmic}[3]
+
+
+\STATE $\textbf{afficher}$ "La durée minimale du projet est de: Head[p].datetard"
+\FOR{$i\gets 1, n$}
+	\STATE $\textbf{afficher}$ "La tache $i$ commencera au plus tot a la date: $Head[i].datetot$, se terminera au plus tard a la date $Head[i].datetard$"
+	\IF{$Head[i].estCritique$}
+		\STATE $\textbf{afficher}$ "C'est une tache critique, il n'y a pas de marge"
+	\ELSE
+		\STATE $\textbf{afficher}$ "La marge pour cette tâche est de:" + $Head[i].datetard-Head[i].datetot$"
+	\ENDIF
+
+\ENDFOR
+\end{algorithmic}
+
+\end{document}
