@@ -1,10 +1,11 @@
-# Projet GC - Rendu
+# Polytech Lille - Projet GC 2023
 
-Mathis Verstrepen - Remi Clement
+Code possible et remplissant entièrement le cahier des charges du sujet de projet de graphes et combinatoires de Polytech Lille pour les IS3 en 2023.
+Ce repo vise à aider les élèves des prochaines années en cas de difficultés sur un sujet similaire.
 
 ## Contenu
 
-* Rapport final au format pdf et tex
+* Rapport final et intermédiaire au format pdf et tex
 * Fichier README
 * Fichiers sources du projet dans le dossier src
 * Fichiers de test dans le dossier ressources
